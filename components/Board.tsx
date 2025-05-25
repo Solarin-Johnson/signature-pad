@@ -159,7 +159,7 @@ const ActionBar = ({
   const progress = useDerivedValue(() => {
     const shouldAnimate =
       (signed.value || pressing.value) && pathLength.value > 0;
-    const duration = pressing.value ? pathLength.value * 2 : 500;
+    const duration = pressing.value ? pathLength.value * 2 : 0;
 
     return withTiming(shouldAnimate ? 1 : 0, { duration });
   });
@@ -269,6 +269,7 @@ const ActionBar = ({
                 animatedStyle={slideAnimatedStyle}
                 pathLength={pathLength}
                 pressing={pressing}
+                signed={signed}
               />
             </View>
           </Animated.View>
