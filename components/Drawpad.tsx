@@ -36,6 +36,7 @@ export interface DrawPadProps {
   stroke: string;
   pathLength: SharedValue<number>;
   playing: SharedValue<boolean>;
+  signed?: SharedValue<boolean>;
 }
 
 export type DrawPadHandle = {
@@ -48,7 +49,7 @@ export type DrawPadHandle = {
 const isWeb = Platform.OS === "web";
 
 const DrawPad = forwardRef<DrawPadHandle, DrawPadProps>(
-  ({ strokeWidth = 3.5, stroke, pathLength, playing }, ref) => {
+  ({ strokeWidth = 3.5, stroke, pathLength, playing, signed }, ref) => {
     const [paths, setPaths] = useState<string[]>([]);
     const currentPath = useSharedValue<string>("");
     const progress = useSharedValue(1);
@@ -145,10 +146,7 @@ const DrawPad = forwardRef<DrawPadHandle, DrawPadProps>(
         progress.value = withTiming(
           0,
           {
-            duration:
-              progress.value < (isWeb ? 0.95 : 1) /*Decimal Error for Web*/
-                ? progress.value * duration
-                : 0,
+            duration: signed?.value ? 1 : progress.value * duration,
             easing,
           },
           () => {
@@ -208,22 +206,22 @@ const DrawPath = ({
   totalPathLength?: SharedValue<number>;
 }) => {
   const pathRef = useRef<Path>(null);
-  const length = new svgPathProperties(path).getTotalLength();
+  const length = new svgPathProperties(path).getTotalLength() + 1;
 
   const animatedProps = useAnimatedProps(() => {
     const prev = prevLength ?? 0;
     const total = totalPathLength?.value ?? 0;
+
     const start = prev / total;
     const end = (prev + length) / total;
-    const turn = interpolate(
-      progress?.value ?? 1,
-      [start, end],
-      [0, 1],
-      Extrapolation.CLAMP
-    );
+    const p = progress?.value ?? 1;
+
+    const turn = interpolate(p, [start, end], [0, 1], Extrapolation.CLAMP);
+    const opacity = p >= start ? 1 : 0;
 
     return {
-      strokeDashoffset: interpolate(turn, [0, 1], [length, 0]),
+      strokeDashoffset: interpolate(turn, [0, 1], [length, 0]) - 1,
+      opacity,
     };
   });
 
