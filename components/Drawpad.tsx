@@ -146,6 +146,10 @@ const DrawPad = forwardRef<DrawPadHandle, DrawPadProps>(
         progress.value = withTiming(
           0,
           {
+            duration:
+              signed?.value || progress.value > 0.999
+                ? 1
+                : progress.value * duration,
             duration: signed?.value ? 1 : progress.value * duration,
             easing,
           },
@@ -208,6 +212,8 @@ const DrawPath = ({
   const pathRef = useRef<Path>(null);
   // Adjustment added to account for rendering quirks in strokeDasharray calculations.
   const PATH_LENGTH_ADJUSTMENT = 1;
+  const length =
+    new svgPathProperties(path).getTotalLength() + PATH_LENGTH_ADJUSTMENT;
   const length = new svgPathProperties(path).getTotalLength() + PATH_LENGTH_ADJUSTMENT;
 
   const animatedProps = useAnimatedProps(() => {
