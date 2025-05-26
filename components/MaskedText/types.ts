@@ -7,4 +7,5 @@ export interface MaskedTextProps {
   animatedStyle?: any;
   pressing?: SharedValue<boolean>;
   pathLength?: SharedValue<number>;
+  signed?: SharedValue<boolean>;
 }

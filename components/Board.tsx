@@ -97,6 +97,7 @@ export default function Board() {
         stroke={text}
         pathLength={pathLength}
         playing={playing}
+        signed={signed}
       />
       <ActionBar
         onErase={handleErase}
@@ -156,12 +157,19 @@ const ActionBar = ({
     return () => window.removeEventListener("pointerdown", handlePointer);
   }, []);
 
-  const progress = useDerivedValue(() => {
-    const shouldAnimate =
-      (signed.value || pressing.value) && pathLength.value > 0;
-    const duration = pressing.value ? pathLength.value * 2 : 500;
+  const progress = useSharedValue(0);
+  const previousProgress = useSharedValue(0);
 
-    return withTiming(shouldAnimate ? 1 : 0, { duration });
+  useDerivedValue(() => {
+    const total = pathLength.value;
+    const active = (signed.value || pressing.value) && total > 0;
+
+    const factor = pressing.value ? 1 : 1 - progress.value;
+    const duration = total * 2 * (active ? factor : previousProgress.value);
+
+    if (active) previousProgress.value = progress.value;
+
+    progress.value = withTiming(active ? 1 : 0, { duration });
   });
 
   useAnimatedReaction(
@@ -269,6 +277,7 @@ const ActionBar = ({
                 animatedStyle={slideAnimatedStyle}
                 pathLength={pathLength}
                 pressing={pressing}
+                signed={signed}
               />
             </View>
           </Animated.View>
