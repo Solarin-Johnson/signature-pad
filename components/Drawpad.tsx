@@ -37,7 +37,6 @@ export interface DrawPadProps {
   pathLength: SharedValue<number>;
   playing: SharedValue<boolean>;
   signed?: SharedValue<boolean>;
-  pressing?: SharedValue<boolean>;
 }
 
 export type DrawPadHandle = {
@@ -50,10 +49,7 @@ export type DrawPadHandle = {
 const isWeb = Platform.OS === "web";
 
 const DrawPad = forwardRef<DrawPadHandle, DrawPadProps>(
-  (
-    { strokeWidth = 3.5, stroke, pathLength, playing, signed, pressing },
-    ref
-  ) => {
+  ({ strokeWidth = 3.5, stroke, pathLength, playing, signed }, ref) => {
     const [paths, setPaths] = useState<string[]>([]);
     const currentPath = useSharedValue<string>("");
     const progress = useSharedValue(1);
@@ -215,7 +211,8 @@ const DrawPath = ({
   const pathRef = useRef<Path>(null);
   // Adjustment added to account for rendering quirks in strokeDasharray calculations.
   const PATH_LENGTH_ADJUSTMENT = 1;
-  const length = new svgPathProperties(path).getTotalLength() + PATH_LENGTH_ADJUSTMENT;
+  const length =
+    new svgPathProperties(path).getTotalLength() + PATH_LENGTH_ADJUSTMENT;
 
   const animatedProps = useAnimatedProps(() => {
     const prev = prevLength ?? 0;

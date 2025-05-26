@@ -35,7 +35,6 @@ export default function Board() {
   const pathLength = useSharedValue<number>(0);
   const playing = useSharedValue<boolean>(false);
   const signed = useSharedValue<boolean>(false);
-  const pressing = useSharedValue(false);
 
   const handleErase = () => {
     if (padRef.current) {
@@ -99,7 +98,6 @@ export default function Board() {
         pathLength={pathLength}
         playing={playing}
         signed={signed}
-        pressing={pressing}
       />
       <ActionBar
         onErase={handleErase}
@@ -108,7 +106,6 @@ export default function Board() {
         onPlay={handleSign}
         pathLength={pathLength}
         signed={signed}
-        pressing={pressing}
       />
     </View>
   );
@@ -121,7 +118,6 @@ const ActionBar = ({
   onPlay,
   pathLength,
   signed,
-  pressing,
 }: {
   onErase: () => void;
   onUndo: () => void;
@@ -129,10 +125,10 @@ const ActionBar = ({
   onPlay: () => void;
   pathLength: SharedValue<number>;
   signed: SharedValue<boolean>;
-  pressing: SharedValue<boolean>;
 }) => {
   const text = useThemeColor({}, "text");
   const buttonWidth = 140;
+  const pressing = useSharedValue(false);
   const [inputType, setInputType] = useState<"touch" | "mouse" | "pen" | null>(
     null
   );
