@@ -206,7 +206,9 @@ const DrawPath = ({
   totalPathLength?: SharedValue<number>;
 }) => {
   const pathRef = useRef<Path>(null);
-  const length = new svgPathProperties(path).getTotalLength() + 1;
+  // Adjustment added to account for rendering quirks in strokeDasharray calculations.
+  const PATH_LENGTH_ADJUSTMENT = 1;
+  const length = new svgPathProperties(path).getTotalLength() + PATH_LENGTH_ADJUSTMENT;
 
   const animatedProps = useAnimatedProps(() => {
     const prev = prevLength ?? 0;
