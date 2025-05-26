@@ -37,6 +37,7 @@ export interface DrawPadProps {
   pathLength: SharedValue<number>;
   playing: SharedValue<boolean>;
   signed?: SharedValue<boolean>;
+  pressing?: SharedValue<boolean>;
 }
 
 export type DrawPadHandle = {
@@ -49,7 +50,10 @@ export type DrawPadHandle = {
 const isWeb = Platform.OS === "web";
 
 const DrawPad = forwardRef<DrawPadHandle, DrawPadProps>(
-  ({ strokeWidth = 3.5, stroke, pathLength, playing, signed }, ref) => {
+  (
+    { strokeWidth = 3.5, stroke, pathLength, playing, signed, pressing },
+    ref
+  ) => {
     const [paths, setPaths] = useState<string[]>([]);
     const currentPath = useSharedValue<string>("");
     const progress = useSharedValue(1);
@@ -146,7 +150,10 @@ const DrawPad = forwardRef<DrawPadHandle, DrawPadProps>(
         progress.value = withTiming(
           0,
           {
-            duration: signed?.value ? 1 : progress.value * duration,
+            duration:
+              signed?.value || progress.value > 0.999
+                ? 1
+                : progress.value * duration,
             easing,
           },
           () => {
