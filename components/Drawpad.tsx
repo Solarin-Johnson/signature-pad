@@ -33,9 +33,9 @@ const PATH_PROPS: PathProps = {
 
 export interface DrawPadProps {
   strokeWidth?: number;
-  stroke: string;
-  pathLength: SharedValue<number>;
-  playing: SharedValue<boolean>;
+  stroke?: string;
+  pathLength?: SharedValue<number>;
+  playing?: SharedValue<boolean>;
   signed?: SharedValue<boolean>;
 }
 
@@ -49,18 +49,22 @@ export type DrawPadHandle = {
 const isWeb = Platform.OS === "web";
 
 const DrawPad = forwardRef<DrawPadHandle, DrawPadProps>(
-  ({ strokeWidth = 3.5, stroke, pathLength, playing, signed }, ref) => {
+  (
+    { strokeWidth = 3.5, stroke = "grey", pathLength, playing, signed },
+    ref
+  ) => {
     const [paths, setPaths] = useState<string[]>([]);
     const currentPath = useSharedValue<string>("");
     const progress = useSharedValue(1);
 
     useEffect(() => {
       if (pathLength) {
-        pathLength.value = paths.reduce((total, path) => {
+        const totalLength = paths.reduce((total, path) => {
           return total + new svgPathProperties(path).getTotalLength();
         }, 0);
+        pathLength.value = totalLength;
       }
-    }, [paths]);
+    }, [paths, pathLength]);
 
     const animatedProps = useAnimatedProps(() => ({
       d: currentPath.value,
@@ -94,7 +98,7 @@ const DrawPad = forwardRef<DrawPadHandle, DrawPadProps>(
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const handlePlay = useCallback(() => {
-      if (!playing.value) {
+      if (playing && pathLength && !playing.value) {
         playing.value = true;
         timeoutRef.current = setTimeout(() => {
           playing.value = false;
@@ -107,9 +111,11 @@ const DrawPad = forwardRef<DrawPadHandle, DrawPadProps>(
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
-      runOnUI(() => {
-        playing.value = false;
-      })();
+      if (playing) {
+        runOnUI(() => {
+          playing.value = false;
+        })();
+      }
     }, [playing]);
 
     useImperativeHandle(ref, () => ({
@@ -132,14 +138,16 @@ const DrawPad = forwardRef<DrawPadHandle, DrawPadProps>(
       });
 
     useAnimatedReaction(
-      () => playing.value,
+      () => playing?.value ?? false,
       (isPlaying) => {
+        if (!playing || !pathLength) return;
+
         const duration = pathLength.value * 2;
-        const easing = Easing.bezier(0.4, 0, 0.5, 1);
+        const easingFunction = Easing.bezier(0.4, 0, 0.5, 1);
 
         if (isPlaying) {
           progress.value = 0;
-          progress.value = withTiming(1, { duration, easing });
+          progress.value = withTiming(1, { duration, easing: easingFunction });
           return;
         }
 
@@ -150,7 +158,7 @@ const DrawPad = forwardRef<DrawPadHandle, DrawPadProps>(
               signed?.value || progress.value > 0.999
                 ? 1
                 : progress.value * duration,
-            easing,
+            easing: easingFunction,
           },
           () => {
             progress.value = 1;
