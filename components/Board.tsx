@@ -1,5 +1,5 @@
 import { Platform, Pressable, StyleSheet, View } from "react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import DrawPad, { DrawPadHandle } from "./Drawpad";
 import {
   Eraser,
@@ -12,6 +12,7 @@ import {
 import { useThemeColor } from "@/hooks/useThemeColor";
 import { ThemedText } from "./ThemedText";
 import Animated, {
+  Easing,
   runOnJS,
   SharedValue,
   useAnimatedReaction,
@@ -28,42 +29,47 @@ const ICON_PROPS: LucideProps = {
 };
 const BTN_HEIGHT = 38;
 const isWeb = Platform.OS === "web";
+const easing = Easing.out(Easing.ease);
 
 export default function Board() {
   const text = useThemeColor({}, "text");
+  const [color, setColor] = useState(text);
   const padRef = useRef<DrawPadHandle>(null);
   const pathLength = useSharedValue<number>(0);
   const playing = useSharedValue<boolean>(false);
   const signed = useSharedValue<boolean>(false);
 
-  const handleErase = () => {
+  const handleErase = useCallback(() => {
     if (padRef.current) {
       padRef.current.erase();
     }
-  };
-  const handleUndo = () => {
+  }, []);
+
+  const handleUndo = useCallback(() => {
     if (padRef.current) {
       padRef.current.undo();
     }
-  };
-  const handleReset = () => {
+  }, []);
+
+  const handleReset = useCallback(() => {
     if (padRef.current) {
       padRef.current.erase();
     }
-  };
-  const handlePreview = () => {
+  }, []);
+
+  const handlePreview = useCallback(() => {
     if (padRef.current) {
       padRef.current.play();
     }
-  };
+  }, []);
 
-  const handleStop = () => {
+  const handleStop = useCallback(() => {
     if (padRef.current) {
       padRef.current.stop();
     }
-  };
+  }, []);
 
-  const handleSign = () => {
+  const handleSign = useCallback(() => {
     if (padRef.current) {
       handleStop();
       setTimeout(() => {
@@ -71,42 +77,40 @@ export default function Board() {
       }, 0);
       padRef.current.play();
     }
-  };
+  }, [handleStop, playing]);
 
   return (
-    <View
-      style={{
-        boxShadow: "0px 2px 8px #00000015",
-        borderRadius: 16,
-        overflow: "hidden",
-        borderWidth: 1,
-        borderColor: text + "25",
-        maxWidth: 480,
-        width: "92%",
-        alignSelf: "center",
-        height: 300,
-      }}
-    >
-      <HeaderBar
-        onReset={handleReset}
-        onPreview={handlePreview}
-        pathLength={pathLength}
-      />
-      <DrawPad
-        ref={padRef}
-        stroke={text}
-        pathLength={pathLength}
-        playing={playing}
-        signed={signed}
-      />
-      <ActionBar
-        onErase={handleErase}
-        onUndo={handleUndo}
-        onStop={handleStop}
-        onPlay={handleSign}
-        pathLength={pathLength}
-        signed={signed}
-      />
+    <View style={styles.container}>
+      <View
+        style={[
+          styles.box,
+          {
+            borderColor: text + "25",
+          },
+        ]}
+      >
+        <HeaderBar
+          onReset={handleReset}
+          onPreview={handlePreview}
+          pathLength={pathLength}
+        />
+        <DrawPad
+          ref={padRef}
+          stroke={color}
+          pathLength={pathLength}
+          playing={playing}
+          signed={signed}
+        />
+        <ActionBar
+          onErase={handleErase}
+          onUndo={handleUndo}
+          onStop={handleStop}
+          onPlay={handleSign}
+          pathLength={pathLength}
+          signed={signed}
+        />
+      </View>
+      <ColorPicker updateColor={setColor} />
     </View>
   );
 }
@@ -306,10 +310,15 @@ const HeaderBar = ({
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
+      opacity: withTiming(pathLength.value > 0 ? 1 : 0, {
+        duration: 150,
+        easing,
+      }),
       transform: [
         {
-          translateY: withTiming(pathLength.value > 0 ? 0 : -50, {
+          translateY: withTiming(pathLength.value > 0 ? 0 : -30, {
             duration: 300,
+            easing,
           }),
         },
       ],
@@ -353,7 +362,47 @@ const HeaderBar = ({
   );
 };
 
+const ColorPicker = ({
+  updateColor,
+}: {
+  updateColor: (color: string) => void;
+}) => {
+  const text = useThemeColor({}, "text");
+  const COLORS = [text, "#90A4AE", "#FF8A65", "#43A047", "#42A5F5", "#BA68C8"];
+
+  return (
+    <View style={styles.picker}>
+      {COLORS.map((color) => (
+        <Pressable
+          key={color}
+          onPress={() => updateColor(color)}
+          style={[
+            styles.pickerBtn,
+            {
+              borderColor: text,
+              backgroundColor: color,
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
+  container: {
+    gap: 12,
+  },
+  box: {
+    boxShadow: "0px 2px 8px #00000015",
+    borderRadius: 16,
+    overflow: "hidden",
+    borderWidth: 1,
+    maxWidth: 480,
+    width: "92%",
+    alignSelf: "center",
+    height: 300,
+  },
   button: {
     paddingLeft: 12,
   },
@@ -370,5 +419,18 @@ const styles = StyleSheet.create({
     height: BTN_HEIGHT,
     alignItems: "center",
     justifyContent: "center",
+  },
+  picker: {
+    flexDirection: "row",
+    gap: 6,
+    marginVertical: 8,
+    justifyContent: "center",
+  },
+  pickerBtn: {
+    width: 36,
+    aspectRatio: 1,
+    borderRadius: "50%",
+    borderWidth: 1.5,
+    marginHorizontal: 2,
   },
 });
