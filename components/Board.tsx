@@ -33,11 +33,15 @@ const easing = Easing.out(Easing.ease);
 
 export default function Board() {
   const text = useThemeColor({}, "text");
-  const [color, setColor] = useState(text);
+  const [color, setColor] = useState("");
   const padRef = useRef<DrawPadHandle>(null);
   const pathLength = useSharedValue<number>(0);
   const playing = useSharedValue<boolean>(false);
   const signed = useSharedValue<boolean>(false);
+
+  useEffect(() => {
+    setColor(text);
+  }, [text]);
 
   const handleErase = useCallback(() => {
     if (padRef.current) {

@@ -1,12 +1,15 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import Board from "@/components/Board";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const isWeb = Platform.OS === "web";
+const webPadding = isWeb ? { paddingVertical: 20 } : {};
+
 export default function Index() {
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView>
+      <SafeAreaView style={webPadding}>
         <Board />
       </SafeAreaView>
     </ThemedView>
