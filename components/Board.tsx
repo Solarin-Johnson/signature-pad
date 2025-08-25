@@ -22,6 +22,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import MaskedText from "./MaskedText";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 const ICON_PROPS: LucideProps = {
   size: 21,
@@ -218,6 +219,8 @@ const ActionBar = ({
     pressing.value = false;
   };
 
+  const gesture = Gesture.Tap().onStart(() => {});
+
   return (
     <View
       style={{
@@ -245,51 +248,53 @@ const ActionBar = ({
         </Pressable>
       </Animated.View>
       <View>
-        <Pressable
-          style={[
-            styles.confirmBtnBlock,
-            styles.confirmBtn,
-            { backgroundColor: text + "20", width: buttonWidth },
-          ]}
-          {...(isWeb && inputType !== "mouse"
-            ? {
-                onTouchStart: startPressing,
-                onTouchEnd: stopPressing,
-                onTouchCancel: stopPressing,
-              }
-            : {
-                onPressIn: startPressing,
-                onPressOut: stopPressing,
-              })}
-        >
-          <Animated.View
+        <GestureDetector gesture={gesture}>
+          <Pressable
             style={[
-              {
-                backgroundColor: "#D1FADC",
-                ...StyleSheet.absoluteFillObject,
-              },
-              slideAnimatedStyle,
+              styles.confirmBtnBlock,
+              styles.confirmBtn,
+              { backgroundColor: text + "20", width: buttonWidth },
             ]}
-          />
-          <Animated.View style={[signedAnimatedStyle]}>
-            <View style={[styles.confirmBtnBlock, {}]}>
-              <ThemedText style={{ fontSize: 15, color: "#1B7F3E" }}>
-                Signed
-              </ThemedText>
-            </View>
-            <View style={styles.confirmBtnBlock}>
-              <MaskedText
-                color="#1B7F3E"
-                baseColor="#D1FADC"
-                text="Hold to confirm"
-                animatedStyle={slideAnimatedStyle}
-                pathLength={pathLength}
-                pressing={pressing}
-                signed={signed}
-              />
-            </View>
-          </Animated.View>
-        </Pressable>
+            {...(isWeb && inputType !== "mouse"
+              ? {
+                  onTouchStart: startPressing,
+                  onTouchEnd: stopPressing,
+                  onTouchCancel: stopPressing,
+                }
+              : {
+                  onPressIn: startPressing,
+                  onPressOut: stopPressing,
+                })}
+          >
+            <Animated.View
+              style={[
+                {
+                  backgroundColor: "#D1FADC",
+                  ...StyleSheet.absoluteFillObject,
+                },
+                slideAnimatedStyle,
+              ]}
+            />
+            <Animated.View style={[signedAnimatedStyle]}>
+              <View style={[styles.confirmBtnBlock, {}]}>
+                <ThemedText style={{ fontSize: 15, color: "#1B7F3E" }}>
+                  Signed
+                </ThemedText>
+              </View>
+              <View style={styles.confirmBtnBlock}>
+                <MaskedText
+                  color="#1B7F3E"
+                  baseColor="#D1FADC"
+                  text="Hold to confirm"
+                  animatedStyle={slideAnimatedStyle}
+                  pathLength={pathLength}
+                  pressing={pressing}
+                  signed={signed}
+                />
+              </View>
+            </Animated.View>
+          </Pressable>
+        </GestureDetector>
       </View>
     </View>
   );
